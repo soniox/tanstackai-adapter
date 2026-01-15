@@ -1,0 +1,54 @@
+{
+  "name": "@soniox/tanstack-ai-adapter",
+  "version": "0.1.0",
+  "description": "Soniox transcription adapter for TanStack AI",
+  "author": "Soniox",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soniox/tanstack-ai-adapter.git"
+  },
+  "homepage": "https://github.com/soniox/tanstack-ai-adapter",
+  "bugs": "https://github.com/soniox/tanstack-ai-adapter/issues",
+  "type": "module",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "test:eslint": "eslint ./src",
+    "test:lib": "vitest --passWithNoTests",
+    "test:types": "tsc",
+    "test:live": "node tests/live-transcription.mjs"
+  },
+  "keywords": [
+    "ai",
+    "soniox",
+    "tanstack",
+    "adapter"
+  ],
+  "peerDependencies": {
+    "@tanstack/ai": "^0.2.2"
+  },
+  "devDependencies": {
+    "@tanstack/ai": "^0.2.2",
+    "@tanstack/vite-config": "^0.1.0",
+    "@types/node": "^20.19.0",
+    "@vitest/coverage-v8": "4.0.14",
+    "typescript": "^5.6.3",
+    "vite": "^7.2.7",
+    "vitest": "^4.0.16"
+  }
+}
