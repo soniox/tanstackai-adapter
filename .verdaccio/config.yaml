@@ -1,0 +1,40 @@
+# Verdaccio configuration for local npm registry testing
+# Project-specific storage - isolated from other projects
+# Only used for testing package publishing, not for normal development
+storage: ./storage
+plugins: ./plugins
+
+# Uplinks - proxy to public npm registry for packages not found locally
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+
+# Web UI
+web:
+  title: Local NPM Registry
+  enable: true
+
+# Authentication
+auth:
+  htpasswd:
+    file: ./htpasswd
+    max_users: 1000
+
+# Package access
+packages:
+  '@soniox/*':
+    access: $all
+    publish: $all
+    unpublish: $all
+  '**':
+    access: $all
+    publish: $all
+    unpublish: $all
+    proxy: npmjs
+
+# Logging
+log:
+  - { type: stdout, format: pretty, level: http }
+
+# Server configuration
+listen: 0.0.0.0:4873

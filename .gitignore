@@ -45,3 +45,14 @@ pnpm-debug.log*
 *.pid
 *.seed
 *.pid.lock
+
+# Verdaccio
+.verdaccio/storage
+.verdaccio/htpasswd
+.verdaccio/plugins
+
+# npm local registry
+.npmrc
+
+# Test app
+test-app/
