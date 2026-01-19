@@ -145,7 +145,7 @@ export class SonioxTranscriptionAdapter<
       const segments = this.buildSegments(tokens)
       const detectedLanguage = this.getLanguageFromTokens(tokens)
 
-      return {
+      const result: TranscriptionResult = {
         id: generateId(this.name),
         model,
         text: transcriptResponse.text ?? '',
@@ -156,6 +156,16 @@ export class SonioxTranscriptionAdapter<
             : undefined,
         segments: segments.length > 0 ? segments : undefined,
       }
+
+      if (tokens.length > 0) {
+        (result as any).providerMetadata = {
+          soniox: {
+            tokens,
+          },
+        }
+      }
+
+      return result
     } finally {
       await this.tryDeleteResource(
         transcriptionId ? `/v1/transcriptions/${transcriptionId}` : undefined,

@@ -191,6 +191,14 @@ The `generateTranscription` function returns a `TranscriptionResult` object:
 }
 ```
 
+If you need access to raw Soniox tokens, the adapter also attaches a
+non-standard `providerMetadata` field at runtime:
+
+```ts
+const result = await generateTranscription(...)
+const tokens = (result as any).providerMetadata?.soniox?.tokens
+```
+
 ## Documentation
 
 - Soniox API docs: https://soniox.com/docs
