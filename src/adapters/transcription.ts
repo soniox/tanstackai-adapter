@@ -4,7 +4,6 @@ import {
   generateId,
   getSonioxApiKeyFromEnv,
 } from '../utils'
-import type { SONIOX_TRANSCRIPTION_MODELS } from '../model-meta'
 import type { SonioxTranscriptionProviderOptions } from '../audio/transcription-provider-options'
 import type {
   TranscriptionOptions,
@@ -53,14 +52,13 @@ export interface SonioxTranscriptionConfig extends TranscriptionAdapterConfig {
 }
 
 /** Model type for Soniox Transcription */
-export type SonioxTranscriptionModel =
-  (typeof SONIOX_TRANSCRIPTION_MODELS)[number]
+export type SonioxTranscriptionModel = string
 
 /**
  * Soniox Transcription (Speech-to-Text) Adapter
  *
  * Tree-shakeable adapter for Soniox async transcription functionality.
- * Supports stt-async-v3.
+ * Supports Soniox async transcription models.
  */
 export class SonioxTranscriptionAdapter<
   TModel extends SonioxTranscriptionModel,

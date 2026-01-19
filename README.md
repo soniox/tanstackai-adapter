@@ -22,7 +22,6 @@ import { sonioxTranscription } from '@soniox/tanstack-ai-adapter'
 const result = await generateTranscription({
   adapter: sonioxTranscription('stt-async-v3'),
   audio: audioFile,
-  language: 'en',
   modelOptions: {
     enableLanguageIdentification: true,
     enableSpeakerDiarization: true,
@@ -65,7 +64,6 @@ Per-request options are passed via `modelOptions`:
 const result = await generateTranscription({
   adapter: sonioxTranscription('stt-async-v3'),
   audio,
-  language: 'en', // Optional language hint
   modelOptions: {
     languageHints: ['en', 'es'],
     enableLanguageIdentification: true,
@@ -97,11 +95,12 @@ Soniox automatically detects and transcribes speech in [**60+ languages**](https
 
 Language hints **do not restrict** recognition — they only **bias** the model toward the specified languages, while still allowing other languages to be detected if present.
 
+If you pass the TanStack `language` option, this adapter will merge it into `languageHints` for convenience.
+
 ```ts
 const result = await generateTranscription({
   adapter: sonioxTranscription('stt-async-v3'),
   audio,
-  language: 'en', // Can also use the language parameter
   modelOptions: {
     languageHints: ['en', 'es'], // ISO language codes
   },
