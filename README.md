@@ -169,6 +169,8 @@ modelOptions: {
 }
 ```
 
+**Note:** When using translation, the API returns both transcription tokens (original) and translation tokens. The `segments` array always includes only transcription tokens. To access translation tokens, use the `providerMetadata` field (see [Accessing raw tokens](#accessing-raw-tokens) section below) and filter by `translation_status === 'translation'`.
+
 ## Response format
 
 The `generateTranscription` function returns a `TranscriptionResult` object:
@@ -191,14 +193,34 @@ The `generateTranscription` function returns a `TranscriptionResult` object:
 }
 ```
 
-If you need access to raw Soniox tokens, the adapter also attaches a
-non-standard `providerMetadata` field at runtime:
+### Accessing raw tokens
+
+When using translation or working with multilingual audio, you may need access to raw tokens with per-token language information and translation status. The adapter attaches a non-standard `providerMetadata` field at runtime:
 
 ```ts
-const result = await generateTranscription(...)
-const tokens = (result as any).providerMetadata?.soniox?.tokens
-```
+const result = await generateTranscription({
+  adapter: sonioxTranscription('stt-async-v3'),
+  audio,
+  modelOptions: {
+    translation: { type: 'one_way', targetLanguage: 'es' },
+  },
+})
 
+// Access raw Soniox tokens with full metadata
+const rawTokens = (result as any).providerMetadata?.soniox?.tokens
+
+if (rawTokens) {
+  rawTokens.forEach((token) => {
+    // token.text - token text
+    // token.start_ms - start time in milliseconds
+    // token.end_ms - end time in milliseconds
+    // token.language - detected language for this token
+    // token.translation_status - translation status (if translation enabled)
+    // token.speaker - speaker identifier
+    // token.confidence - confidence score
+  })
+}
+```
 ## Documentation
 
 - Soniox API docs: https://soniox.com/docs

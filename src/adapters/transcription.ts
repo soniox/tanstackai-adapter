@@ -142,6 +142,8 @@ export class SonioxTranscriptionAdapter<
         )
 
       const tokens = transcriptResponse.tokens ?? []
+      // Segments always include transcription tokens (exclude translation tokens)
+      // Translation tokens are available via providerMetadata
       const segments = this.buildSegments(tokens)
       const detectedLanguage = this.getLanguageFromTokens(tokens)
 
@@ -234,11 +236,23 @@ export class SonioxTranscriptionAdapter<
     tokens: Array<SonioxTranscriptToken>,
   ): Array<TranscriptionSegment> {
     return tokens
-      .filter(
-        (token) =>
-          typeof token.start_ms === 'number' &&
-          typeof token.end_ms === 'number',
-      )
+      .filter((token) => {
+        // Must have timestamps
+        if (
+          typeof token.start_ms !== 'number' ||
+          typeof token.end_ms !== 'number'
+        ) {
+          return false
+        }
+        // Always exclude translation tokens from segments
+        // Translation tokens don't have timestamps and should be accessed via providerMetadata
+        return (
+          token.translation_status === undefined ||
+          token.translation_status === null ||
+          token.translation_status === 'original' ||
+          token.translation_status === 'none'
+        )
+      })
       .map((token, index) => ({
         id: index,
         start: token.start_ms! / 1000,
