@@ -2,7 +2,7 @@
   "name": "@soniox/tanstack-ai-adapter",
   "version": "0.1.0",
   "description": "Soniox transcription adapter for TanStack AI",
-  "author": "Soniox",
+  "author": "Soniox Inc.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -33,15 +33,14 @@
     "test:types": "tsc",
     "test:live": "node tests/live-transcription.mjs",
     "verdaccio": "verdaccio --config .verdaccio/config.yaml",
-    "publish:local": "npm run build && npm publish --registry http://localhost:4873",
-    "publish:local:force": "npm run build && npm publish --registry http://localhost:4873 --force",
     "test:publish": "npm run build && npm publish --registry http://localhost:4873 --force"
   },
   "keywords": [
     "ai",
     "soniox",
     "tanstack",
-    "adapter"
+    "adapter",
+    "transcription"
   ],
   "peerDependencies": {
     "@tanstack/ai": "^0.2.2"
