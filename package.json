@@ -8,6 +8,9 @@
     "type": "git",
     "url": "git+https://github.com/soniox/tanstackai-adapter.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "homepage": "https://github.com/soniox/tanstackai-adapter",
   "bugs": "https://github.com/soniox/tanstackai-adapter/issues",
   "type": "module",
