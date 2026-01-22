@@ -78,7 +78,7 @@ export class SonioxTranscriptionAdapter<
   ): Promise<TranscriptionResult> {
     const { model, audio, language, modelOptions } = options
 
-    const file = this.prepareAudioFile(audio)
+    const file = await this.prepareAudioFile(audio)
     const headers = this.buildHeaders()
 
     let fileId: string | undefined
@@ -386,9 +386,14 @@ export class SonioxTranscriptionAdapter<
     }
   }
 
-  private prepareAudioFile(
-    audio: string | File | Blob | ArrayBuffer | Uint8Array,
-  ): File {
+  private async prepareAudioFile(
+    audio: string | URL | File | Blob | ArrayBuffer | Uint8Array,
+  ): Promise<File> {
+    // Handle URL objects
+    if (audio instanceof URL) {
+      return this.fetchAudioFromUrl(audio.toString())
+    }
+
     if (typeof File !== 'undefined' && audio instanceof File) {
       return audio
     }
@@ -410,6 +415,11 @@ export class SonioxTranscriptionAdapter<
     }
 
     if (typeof audio === 'string') {
+      // Handle HTTP(S) URL strings
+      if (audio.startsWith('https://') || audio.startsWith('http://')) {
+        return this.fetchAudioFromUrl(audio)
+      }
+
       if (audio.startsWith('data:')) {
         const [header, base64Data] = audio.split(',')
         const mimeMatch = header?.match(/data:([^;]+)/)
@@ -432,6 +442,32 @@ export class SonioxTranscriptionAdapter<
     }
 
     throw new Error('Invalid audio input type')
+  }
+
+  private async fetchAudioFromUrl(url: string): Promise<File> {
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch audio from URL (${response.status} ${response.statusText})`,
+      )
+    }
+
+    const blob = await response.blob()
+    const mimeType = blob.type || 'audio/mpeg'
+    const extension = this.getExtensionFromUrl(url) || mimeType.split('/')[1] || 'mp3'
+
+    return new File([blob], `audio.${extension}`, { type: mimeType })
+  }
+
+  private getExtensionFromUrl(url: string): string | undefined {
+    try {
+      const pathname = new URL(url).pathname
+      const match = pathname.match(/\.([a-zA-Z0-9]+)$/)
+      return match?.[1]
+    } catch {
+      return undefined
+    }
   }
 
   private delay(ms: number): Promise<void> {

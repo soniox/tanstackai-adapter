@@ -22,13 +22,15 @@ if (!fs.existsSync(aiDistPath) || !fs.existsSync(sonioxDistPath)) {
 const { generateTranscription } = await import(aiDistUrl.href)
 const { sonioxTranscription } = await import(sonioxDistUrl.href)
 
+// Test 1: File-based transcription
+console.log('=== Test 1: File-based transcription ===')
 const audioPath =
   process.argv[2] ??
   './tests/fixtures/test-audio.mp3'
 
 const audio = fs.readFileSync(audioPath)
 
-const result = await generateTranscription({
+const result1 = await generateTranscription({
   adapter: sonioxTranscription('stt-async-v3'),
   audio,
   modelOptions: {
@@ -36,4 +38,41 @@ const result = await generateTranscription({
   },
 })
 
-console.log(JSON.stringify(result, null, 2))
+console.log(JSON.stringify(result1, null, 2))
+
+// Test 2: URL object transcription
+console.log('\n=== Test 2: URL object transcription ===')
+const testAudioUrl = 'https://soniox.com/media/examples/coffee_shop.mp3'
+
+const result2 = await generateTranscription({
+  adapter: sonioxTranscription('stt-async-v3'),
+  audio: new URL(testAudioUrl),
+  modelOptions: {
+    enableLanguageIdentification: true,
+    enableSpeakerDiarization: true,
+  },
+})
+
+console.log(`Text: ${result2.text.substring(0, 100)}...`)
+console.log(`Language: ${result2.language}`)
+console.log(`Duration: ${result2.duration}s`)
+console.log(`Segments: ${result2.segments?.length}`)
+
+// Test 3: URL string transcription
+console.log('\n=== Test 3: URL string transcription ===')
+
+const result3 = await generateTranscription({
+  adapter: sonioxTranscription('stt-async-v3'),
+  audio: testAudioUrl,
+  modelOptions: {
+    enableLanguageIdentification: true,
+    enableSpeakerDiarization: true,
+  },
+})
+
+console.log(`Text: ${result3.text.substring(0, 100)}...`)
+console.log(`Language: ${result3.language}`)
+console.log(`Duration: ${result3.duration}s`)
+console.log(`Segments: ${result3.segments?.length}`)
+
+console.log('\n=== All tests passed! ===')
