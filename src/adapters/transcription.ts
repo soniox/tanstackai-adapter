@@ -78,26 +78,30 @@ export class SonioxTranscriptionAdapter<
   ): Promise<TranscriptionResult> {
     const { model, audio, language, modelOptions } = options
 
-    const file = await this.prepareAudioFile(audio)
     const headers = this.buildHeaders()
+    const audioUrl = this.extractAudioUrl(audio)
 
     let fileId: string | undefined
     let transcriptionId: string | undefined
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      // If not a URL, upload the file first
+      if (!audioUrl) {
+        const file = this.prepareAudioFile(audio)
+        const formData = new FormData()
+        formData.append('file', file)
 
-      const uploadResponse = await this.requestJson<SonioxUploadResponse>(
-        '/v1/files',
-        {
-          method: 'POST',
-          headers,
-          body: formData,
-        },
-      )
+        const uploadResponse = await this.requestJson<SonioxUploadResponse>(
+          '/v1/files',
+          {
+            method: 'POST',
+            headers,
+            body: formData,
+          },
+        )
 
-      fileId = uploadResponse.id
+        fileId = uploadResponse.id
+      }
 
       const mapped = this.mapProviderOptions(modelOptions, language)
 
@@ -112,7 +116,8 @@ export class SonioxTranscriptionAdapter<
             },
             body: JSON.stringify({
               model,
-              file_id: fileId,
+              // Use audio_url if URL provided, otherwise use file_id
+              ...(audioUrl ? { audio_url: audioUrl } : { file_id: fileId }),
               language_hints: mapped.languageHints,
               language_hints_strict: mapped.languageHintsStrict,
               enable_language_identification:
@@ -169,15 +174,38 @@ export class SonioxTranscriptionAdapter<
 
       return result
     } finally {
+      // Always clean up transcription
       await this.tryDeleteResource(
         transcriptionId ? `/v1/transcriptions/${transcriptionId}` : undefined,
         headers,
       )
+      // Clean up file if we uploaded one
       await this.tryDeleteResource(
         fileId ? `/v1/files/${fileId}` : undefined,
         headers,
       )
     }
+  }
+
+  /**
+   * Extracts URL string if the audio input is a URL (object or string).
+   * Returns undefined for non-URL inputs.
+   */
+  private extractAudioUrl(
+    audio: string | URL | File | Blob | ArrayBuffer | Uint8Array,
+  ): string | undefined {
+    if (audio instanceof URL) {
+      return audio.toString()
+    }
+
+    if (
+      typeof audio === 'string' &&
+      (audio.startsWith('https://') || audio.startsWith('http://'))
+    ) {
+      return audio
+    }
+
+    return undefined
   }
 
   private mapProviderOptions(
@@ -386,14 +414,13 @@ export class SonioxTranscriptionAdapter<
     }
   }
 
-  private async prepareAudioFile(
+  /**
+   * Prepares audio input as a File for upload.
+   * Only called for non-URL inputs (URLs use audio_url parameter directly).
+   */
+  private prepareAudioFile(
     audio: string | URL | File | Blob | ArrayBuffer | Uint8Array,
-  ): Promise<File> {
-    // Handle URL objects
-    if (audio instanceof URL) {
-      return this.fetchAudioFromUrl(audio.toString())
-    }
-
+  ): File {
     if (typeof File !== 'undefined' && audio instanceof File) {
       return audio
     }
@@ -415,11 +442,6 @@ export class SonioxTranscriptionAdapter<
     }
 
     if (typeof audio === 'string') {
-      // Handle HTTP(S) URL strings
-      if (audio.startsWith('https://') || audio.startsWith('http://')) {
-        return this.fetchAudioFromUrl(audio)
-      }
-
       if (audio.startsWith('data:')) {
         const [header, base64Data] = audio.split(',')
         const mimeMatch = header?.match(/data:([^;]+)/)
@@ -433,6 +455,7 @@ export class SonioxTranscriptionAdapter<
         return new File([bytes], `audio.${extension}`, { type: mimeType })
       }
 
+      // Assume base64 string
       const binaryStr = atob(audio)
       const bytes = new Uint8Array(binaryStr.length)
       for (let i = 0; i < binaryStr.length; i++) {
@@ -442,32 +465,6 @@ export class SonioxTranscriptionAdapter<
     }
 
     throw new Error('Invalid audio input type')
-  }
-
-  private async fetchAudioFromUrl(url: string): Promise<File> {
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch audio from URL (${response.status} ${response.statusText})`,
-      )
-    }
-
-    const blob = await response.blob()
-    const mimeType = blob.type || 'audio/mpeg'
-    const extension = this.getExtensionFromUrl(url) || mimeType.split('/')[1] || 'mp3'
-
-    return new File([blob], `audio.${extension}`, { type: mimeType })
-  }
-
-  private getExtensionFromUrl(url: string): string | undefined {
-    try {
-      const pathname = new URL(url).pathname
-      const match = pathname.match(/\.([a-zA-Z0-9]+)$/)
-      return match?.[1]
-    } catch {
-      return undefined
-    }
   }
 
   private delay(ms: number): Promise<void> {
