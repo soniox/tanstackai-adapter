@@ -2,6 +2,9 @@ export {
   SonioxTranscriptionAdapter,
   createSonioxTranscription,
   sonioxTranscription,
+  SonioxTranscriptionError,
+  SonioxTranscriptionTimeoutError,
+  SonioxApiError,
   type SonioxTranscriptionConfig,
   type SonioxTranscriptionModel,
 } from './adapters/transcription'

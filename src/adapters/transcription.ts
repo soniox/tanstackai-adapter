@@ -12,6 +12,40 @@ import type {
 } from '@tanstack/ai'
 import type { TranscriptionAdapterConfig } from '@tanstack/ai/adapters'
 
+/**
+ * Base error class for Soniox transcription errors
+ */
+export class SonioxTranscriptionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'SonioxTranscriptionError'
+  }
+}
+
+/**
+ * Error thrown when a transcription job times out
+ */
+export class SonioxTranscriptionTimeoutError extends SonioxTranscriptionError {
+  constructor(message = 'Transcription job polling timed out') {
+    super(message)
+    this.name = 'SonioxTranscriptionTimeoutError'
+  }
+}
+
+/**
+ * Error thrown when the Soniox API returns an error response
+ */
+export class SonioxApiError extends SonioxTranscriptionError {
+  constructor(
+    public readonly status: number,
+    public readonly statusText: string,
+    public readonly body?: string,
+  ) {
+    super(`Soniox API error (${status} ${statusText})${body ? `: ${body}` : ''}`)
+    this.name = 'SonioxApiError'
+  }
+}
+
 interface SonioxTranscriptToken {
   text: string
   start_ms?: number | null
@@ -49,6 +83,7 @@ interface SonioxTranscriptResponse {
  */
 export interface SonioxTranscriptionConfig extends TranscriptionAdapterConfig {
   pollingIntervalMs?: number
+  timeout?: number
 }
 
 /** Model type for Soniox Transcription */
@@ -66,6 +101,7 @@ export class SonioxTranscriptionAdapter<
   readonly name = 'soniox' as const
 
   private readonly pollingIntervalMs = 1000
+  private readonly timeout = 5 * 60 * 1000
   protected override config: SonioxTranscriptionConfig
 
   constructor(config: SonioxTranscriptionConfig, model: TModel) {
@@ -323,12 +359,12 @@ export class SonioxTranscriptionAdapter<
   ): Promise<SonioxTranscriptionStatusResponse> {
     const headers = this.buildHeaders()
     const start = Date.now()
-    const timeoutMs = this.config.timeout ?? 3 * 60 * 1000
+    const timeoutMs = this.config.timeout ?? this.timeout
     const interval = this.config.pollingIntervalMs ?? this.pollingIntervalMs
 
     for (;;) {
       if (Date.now() - start > timeoutMs) {
-        throw new Error('Transcription job polling timed out')
+        throw new SonioxTranscriptionTimeoutError()
       }
 
       const statusResponse =
@@ -345,7 +381,7 @@ export class SonioxTranscriptionAdapter<
       }
 
       if (statusResponse.status === 'error') {
-        throw new Error(
+        throw new SonioxTranscriptionError(
           `Transcription failed: ${statusResponse.error_message ?? 'Unknown error'}`,
         )
       }
@@ -360,11 +396,7 @@ export class SonioxTranscriptionAdapter<
 
     if (!response.ok) {
       const text = await this.safeReadText(response)
-      throw new Error(
-        `Soniox API error (${response.status} ${response.statusText})${
-          text ? `: ${text}` : ''
-        }`,
-      )
+      throw new SonioxApiError(response.status, response.statusText, text)
     }
 
     const text = await this.safeReadText(response)
@@ -375,7 +407,7 @@ export class SonioxTranscriptionAdapter<
     try {
       return JSON.parse(text) as T
     } catch (error) {
-      throw new Error('Failed to parse Soniox response JSON')
+      throw new SonioxTranscriptionError('Failed to parse Soniox response JSON')
     }
   }
 
