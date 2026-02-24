@@ -36,7 +36,7 @@ const audioPath = process.argv[2] ?? "./tests/fixtures/test-audio.mp3";
 const audio = fs.readFileSync(audioPath);
 
 const result1 = await generateTranscription({
-  adapter: sonioxTranscription("stt-async-v3"),
+  adapter: sonioxTranscription("stt-async-v4"),
   audio,
   modelOptions: {
     enableLanguageIdentification: true,
@@ -49,7 +49,7 @@ console.log("\n=== Test 2: URL object transcription ===");
 const testAudioUrl = "https://soniox.com/media/examples/coffee_shop.mp3";
 
 const result2 = await generateTranscription({
-  adapter: sonioxTranscription("stt-async-v3"),
+  adapter: sonioxTranscription("stt-async-v4"),
   audio: new URL(testAudioUrl),
   modelOptions: {
     enableLanguageIdentification: true,
@@ -66,7 +66,7 @@ console.log(`Segments: ${result2.segments?.length}`);
 console.log("\n=== Test 3: URL string transcription ===");
 
 const result3 = await generateTranscription({
-  adapter: sonioxTranscription("stt-async-v3"),
+  adapter: sonioxTranscription("stt-async-v4"),
   audio: testAudioUrl,
   modelOptions: {
     enableLanguageIdentification: true,
@@ -84,7 +84,7 @@ console.log(`Segments: ${result3.segments?.length}`);
 console.log("\n=== Test 4: Invalid API Key check ===");
 try {
   await generateTranscription({
-    adapter: sonioxTranscription("stt-async-v3", {
+    adapter: sonioxTranscription("stt-async-v4", {
       apiKey: "invalid_key_format",
     }),
     audio: testAudioUrl,

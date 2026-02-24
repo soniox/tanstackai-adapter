@@ -20,7 +20,7 @@ import { generateTranscription } from '@tanstack/ai'
 import { sonioxTranscription } from '@soniox/tanstack-ai-adapter'
 
 const result = await generateTranscription({
-  adapter: sonioxTranscription('stt-async-v3'),
+  adapter: sonioxTranscription('stt-async-v4'),
   audio: audioFile,
   modelOptions: {
     enableLanguageIdentification: true,
@@ -39,7 +39,7 @@ Use `createSonioxTranscription` to customize the adapter instance:
 ```ts
 import { createSonioxTranscription } from '@soniox/tanstack-ai-adapter'
 
-const adapter = createSonioxTranscription('stt-async-v3', process.env.SONIOX_API_KEY!, {
+const adapter = createSonioxTranscription('stt-async-v4', process.env.SONIOX_API_KEY!, {
   baseUrl: 'https://api.soniox.com',
   pollingIntervalMs: 1000,
   timeout: 180000,
@@ -62,7 +62,7 @@ Per-request options are passed via `modelOptions`:
 
 ```ts
 const result = await generateTranscription({
-  adapter: sonioxTranscription('stt-async-v3'),
+  adapter: sonioxTranscription('stt-async-v4'),
   audio,
   modelOptions: {
     languageHints: ['en', 'es'],
@@ -99,7 +99,7 @@ If you pass the TanStack `language` option, this adapter will merge it into `lan
 
 ```ts
 const result = await generateTranscription({
-  adapter: sonioxTranscription('stt-async-v3'),
+  adapter: sonioxTranscription('stt-async-v4'),
   audio,
   modelOptions: {
     languageHints: ['en', 'es'], // ISO language codes
@@ -117,7 +117,7 @@ The `context` object supports four optional sections:
 
 ```ts
 const result = await generateTranscription({
-  adapter: sonioxTranscription('stt-async-v3'),
+  adapter: sonioxTranscription('stt-async-v4'),
   audio,
   modelOptions: {
     context: {
@@ -149,7 +149,7 @@ Configure translation for your transcriptions:
 
 ```ts
 const result = await generateTranscription({
-  adapter: sonioxTranscription('stt-async-v3'),
+  adapter: sonioxTranscription('stt-async-v4'),
   audio,
   modelOptions: {
     translation: {
@@ -199,7 +199,7 @@ When using translation or working with multilingual audio, you may need access t
 
 ```ts
 const result = await generateTranscription({
-  adapter: sonioxTranscription('stt-async-v3'),
+  adapter: sonioxTranscription('stt-async-v4'),
   audio,
   modelOptions: {
     translation: { type: 'one_way', targetLanguage: 'es' },

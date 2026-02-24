@@ -8,7 +8,7 @@ const createAdapter = () =>
       baseUrl: 'https://api.soniox.com',
       pollingIntervalMs: 1,
     },
-    'stt-async-v3',
+    'stt-async-v4',
   )
 
 const ensureFilePolyfill = () => {
@@ -107,7 +107,7 @@ describe('Soniox transcription adapter', () => {
 
     const adapter = createAdapter()
     const result = await adapter.transcribe({
-      model: 'stt-async-v3',
+      model: 'stt-async-v4',
       audio: new ArrayBuffer(4),
       language: 'en',
       modelOptions: {
